@@ -1,0 +1,19 @@
+name: Monthly Release
+
+on:
+  schedule:
+    - cron: '0 0 1 * *'
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+            npm ci
+            npm test
+
+  release:
+    needs: test
+    uses: ./.github/workflows/auto-release.yml
