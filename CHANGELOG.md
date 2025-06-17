@@ -4,6 +4,12 @@
 
 # Changelog
 
+[0.0.2] - 2025-06-17
+- semver tag (#3)
+- update changelog (#2)
+- test monthly release workflow (#1)
+
+
 [v0..1] - 2025-06-17
 - update changelog (#2)
 - test monthly release workflow (#1)
