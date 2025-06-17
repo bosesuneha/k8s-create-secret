@@ -4,6 +4,11 @@
 
 # Changelog
 
+[v0..1] - 2025-06-17
+- update changelog (#2)
+- test monthly release workflow (#1)
+
+
 ## [5.0.1] - 2024-09-06
 
 ### Changed
