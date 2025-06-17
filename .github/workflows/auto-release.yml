@@ -43,18 +43,29 @@ jobs:
          - name: Update CHANGELOG.md if it exists
            run: |
               if [[ -f CHANGELOG.md ]]; then
-                echo "Updating CHANGELOG.md"
-                DATE=$(date +'%Y-%m-%d')
-                VERSION="${{ steps.bump.outputs.new_version }}"
-                echo -e "## $VERSION - $DATE\n\n${{ steps.changelog.outputs.body }}\n" | cat - CHANGELOG.md > temp && mv temp CHANGELOG.md
+                 DATE=$(date +'%Y-%m-%d')
+                 VERSION="${{ steps.bump.outputs.new_version }}"
+                 ENTRY="[${VERSION#v}] - $DATE\n${{ steps.changelog.outputs.body }}\n"
 
-                git config user.name "github-actions[bot]"
-                git config user.email "github-actions[bot]@users.noreply.github.com"
-                git add CHANGELOG.md
-                git commit -m "docs: update changelog for $VERSION"
-                git push origin HEAD
+                 awk -v entry="$ENTRY" '
+                 BEGIN { inserted = 0 }
+                 /^# Changelog/ {
+                    print
+                    print ""
+                    print entry
+                    inserted = 1
+                    next
+                 }
+                 { print }
+                 ' CHANGELOG.md > temp && mv temp CHANGELOG.md
+
+                 git config user.name "github-actions[bot]"
+                 git config user.email "github-actions[bot]@users.noreply.github.com"
+                 git add CHANGELOG.md
+                 git commit -m "docs: update changelog for $VERSION"
+                 git push origin HEAD
               else
-                echo "No CHANGELOG.md file found. Skipping update."
+                 echo "No CHANGELOG.md file found. Skipping update."
               fi
 
          - name: Create and push version tag
