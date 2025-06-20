@@ -1,28 +1,4 @@
-## v0.0.1 - 2025-06-14
-
-- test monthly release workflow (#1)
-
 # Changelog
-
-## [5.0.1] - 2025-06-20
-
-## 📦 Uncategorized
-
-- update workflow
-   - PR: #4
-
-
-
-[0.0.2] - 2025-06-17
-- semver tag (#3)
-- update changelog (#2)
-- test monthly release workflow (#1)
-
-
-[v0..1] - 2025-06-17
-- update changelog (#2)
-- test monthly release workflow (#1)
-
 
 ## [5.0.1] - 2024-09-06
 
