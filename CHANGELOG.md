@@ -4,6 +4,15 @@
 
 # Changelog
 
+## [5.0.1] - 2025-06-20
+
+## 📦 Uncategorized
+
+- update workflow
+   - PR: #4
+
+
+
 [0.0.2] - 2025-06-17
 - semver tag (#3)
 - update changelog (#2)
