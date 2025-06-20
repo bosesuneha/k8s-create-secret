@@ -105,7 +105,7 @@ jobs:
               # Update CHANGELOG.md if present
               if [[ -f CHANGELOG.md ]]; then
                 DATE=$(date +'%Y-%m-%d')
-                ENTRY="## [${NEW_VERSION#v}] - $DATE"$'\n\n'"${CHANGELOG_BODY%$'\n'}"$'\n'
+                ENTRY="## [${NEW_VERSION#v}] - $DATE"$'\n\n'"${CHANGELOG_BODY%$'\n'}"
 
                 # Insert right under "# Changelog"
                 awk -v e="$ENTRY" '

@@ -6,7 +6,6 @@
 
 - #13 update template
 
-
 ## [5.0.5] - 2025-06-20
 
 ### Changed
