@@ -1,11 +1,11 @@
 {
-  "template": "### Changed\n\n{{#if pullRequests}}{{#each pullRequests}}- #{{number}} {{title}}\n{{/each}}{{else}}- No changes since last release\n{{/if}}",
-  "pr_template": "- #{{number}} {{title}}",
-  "sort": false,
-  "categories": [
-    {
-      "title": "### Changed",
-      "labels": []
-    }
-  ]
+   "template": "### Changed\n\n{{#if pullRequests}}{{#each pullRequests}}- #{{number}} {{title}}\n{{/each}}{{else}}- No changes since last release\n{{/if}}",
+   "pr_template": "- #{{number}} {{title}}",
+   "sort": false,
+   "categories": [
+      {
+         "title": "### Changed",
+         "labels": []
+      }
+   ]
 }
