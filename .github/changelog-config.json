@@ -1,11 +1,15 @@
 {
-   "template": "### Changed\n\n{{#if pullRequests}}{{#each pullRequests}}- #{{number}} {{title}}\n{{/each}}{{else}}- No changes since last release\n{{/if}}",
-   "pr_template": "- #{{number}} {{title}}",
-   "sort": false,
    "categories": [
       {
          "title": "### Changed",
          "labels": []
       }
-   ]
+   ],
+   "template": "#{{CHANGELOG}}",
+   "pr_template": "- #{{NUMBER}} {{TITLE}}",
+   "empty_template": "### Changed\n\n- No changes since last release",
+   "sort": {
+      "order": "ASC",
+      "on_property": "mergedAt"
+    }
 }
