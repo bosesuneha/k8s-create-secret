@@ -1,5 +1,13 @@
 # Changelog
 
+## [5.0.4] - 2025-06-20
+
+### Changed
+
+{{#if pullRequests}}{{#each pullRequests}}- #{{number}} {{title}}
+{{/each}}{{else}}- No changes since last release
+{{/if}}
+
 ## [5.0.3] - 2025-06-20
 
 - no changes
