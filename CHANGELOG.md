@@ -1,5 +1,11 @@
 # Changelog
 
+## [5.0.7] - 2025-06-20
+
+### Changed
+
+- #15 update workflow
+
 ## [5.0.6] - 2025-06-20
 
 ### Changed
