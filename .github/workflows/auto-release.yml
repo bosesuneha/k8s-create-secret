@@ -51,23 +51,7 @@ jobs:
            id: changelog
            uses: mikepenz/release-changelog-builder-action@v4
            with:
-              configuration: |
-                 template: |
-                   {{#if pullRequests}}
-                   ### Changed
-                   
-                   {{#each pullRequests}}
-                   - #{{number}} {{title}}
-                   {{/each}}
-                   {{else}}
-                   ### Changed
-                   
-                   - No changes since last release
-                   {{/if}}
-                 pr_template: "- #{{number}} {{title}}"
-                 sort: false
-                 max_pull_requests: 1000
-                 max_back_track_time_days: 1000
+              configuration: .github/changelog-config.json
               fromTag: ${{ steps.get_tag.outputs.latest_tag }}
               toTag: HEAD
            env:

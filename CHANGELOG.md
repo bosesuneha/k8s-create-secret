@@ -11,8 +11,6 @@
 - Update README.md
    - PR: #6
 
-
-
 ## [5.0.1] - 2024-09-06
 
 ### Changed
