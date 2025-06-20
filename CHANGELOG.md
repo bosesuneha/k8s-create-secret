@@ -1,5 +1,18 @@
 # Changelog
 
+## [5.0.3] - 2025-06-20
+
+- no changes
+
+## [5.0.2] - 2025-06-20
+
+## 📦 Uncategorized
+
+- Update README.md
+   - PR: #6
+
+
+
 ## [5.0.1] - 2024-09-06
 
 ### Changed
