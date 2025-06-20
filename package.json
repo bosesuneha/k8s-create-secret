@@ -1,6 +1,6 @@
 {
    "name": "k8s-create-secret-action",
-   "version": "5.0.5",
+   "version": "5.0.6",
    "private": true,
    "main": "lib/index.js",
    "scripts": {
