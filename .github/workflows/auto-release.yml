@@ -64,7 +64,7 @@ jobs:
            run: |
               if [[ -f CHANGELOG.md ]]; then
                 DATE=$(date +'%Y-%m-%d')
-                ENTRY="## [${NEW_VERSION#v}] - $DATE"$'\n\n'"$CHANGELOG_BODY"$'\n'
+                ENTRY="## [${NEW_VERSION#v}] - $DATE"$'\n\n'"${CHANGELOG_BODY%$'\n'}"$'\n'
 
                 # insert right under "# Changelog"
                 awk -v e="$ENTRY" '
@@ -97,6 +97,8 @@ jobs:
               base: main
               branch: release-${{ steps.bump.outputs.new_version }}
               labels: automated, release
+              author: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
+              committer: github-actions[bot] <github-actions[bot]@users.noreply.github.com>
 
          - name: Wait for PR to merge
            run: |
