@@ -11,5 +11,5 @@
    "sort": {
       "order": "ASC",
       "on_property": "mergedAt"
-    }
+   }
 }
