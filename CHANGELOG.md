@@ -1,5 +1,10 @@
 # Changelog
 
+## [5.0.8] - 2025-07-01
+
+### Changed
+
+- No changes since last release
 ## [5.0.7] - 2025-06-20
 
 ### Changed
