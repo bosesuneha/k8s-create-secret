@@ -1,0 +1,27 @@
+name: Example Release Workflow
+
+on:
+   # Monthly automatic release - patch version bump
+   schedule:
+      - cron: '0 0 1 * *' # Monthly on the 1st at midnight UTC
+
+   # Manual trigger with version bump options
+   workflow_dispatch:
+      inputs:
+         version_bump:
+            description: 'Version bump type'
+            required: true
+            default: 'patch'
+            type: choice
+            options:
+               - patch
+               - minor
+               - major
+
+jobs:
+   create-release-pr:
+      name: Create Release PR
+      uses: ./.github/workflows/monthly-release.yml
+      with:
+         version_bump: ${{ github.event_name == 'schedule' && 'patch' || github.event.inputs.version_bump }}
+         trigger_type: ${{ github.event_name == 'schedule' && 'monthly' || 'manual' }}
