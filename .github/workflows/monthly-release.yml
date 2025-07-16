@@ -53,17 +53,6 @@ jobs:
               echo "latest_tag=$LATEST_TAG" >> $GITHUB_OUTPUT
               echo "Found latest tag: $LATEST_TAG"
 
-         - name: Check if release already exists
-           id: check_release
-           run: |
-              current_version="v$(node -p "require('./package.json').version")"
-              if git tag -l | grep -q "^$current_version$"; then
-                echo "release_exists=true" >> $GITHUB_OUTPUT
-                echo "::warning::Release $current_version already exists"
-              else
-                echo "release_exists=false" >> $GITHUB_OUTPUT
-              fi
-
          - name: Determine version bump type
            id: version_type
            run: |
@@ -78,6 +67,31 @@ jobs:
               fi
 
               echo "trigger_type=$TRIGGER_TYPE" >> $GITHUB_OUTPUT
+
+         - name: Check if release already exists
+           id: check_release
+           run: |
+              current_version=$(node -p "require('./package.json').version")
+              bump_type="${{ steps.version_type.outputs.bump_type }}"
+              next_version=$(npx semver "$current_version" -i "$bump_type")
+              new_tag="v$next_version"
+
+              echo "current_version=$current_version" >> $GITHUB_OUTPUT
+              echo "next_version=$next_version" >> $GITHUB_OUTPUT
+              echo "next_tag=$new_tag" >> $GITHUB_OUTPUT
+
+              echo "Current version: $current_version"
+              echo "Bump type: $bump_type"
+              echo "Next version: $next_version"
+              echo "New tag: $new_tag"
+
+              if git tag -l | grep -q "^$new_tag$"; then
+                 echo "release_exists=true" >> $GITHUB_OUTPUT
+                 echo "::warning::Tag $new_tag already exists"
+              else
+                 echo "release_exists=false" >> $GITHUB_OUTPUT
+                 echo "Tag $new_tag does not exist, proceeding with release"
+              fi
 
          - name: Bump version
            id: bump
@@ -96,7 +110,7 @@ jobs:
 
               new_version="v$(node -p "require('./package.json').version")"
               echo "new_version=$new_version" >> $GITHUB_OUTPUT
-              echo "New version: $new_version"
+              echo "Final version: $new_version"
 
          - name: Build changelog from merged PRs
            id: changelog
@@ -107,12 +121,12 @@ jobs:
               fromTag: ${{ steps.get_tag.outputs.latest_tag }}
               toTag: HEAD
            env:
-              GITHUB_TOKEN: ${{ secrets.github_token }}
+              GITHUB_TOKEN: ${{ secrets.gh_token }}
 
          - name: Update CHANGELOG.md
            if: steps.check_release.outputs.release_exists == 'false'
            env:
-              NEW_VERSION: ${{ steps.bump.outputs.new_version }}
+              NEW_VERSION: ${{ steps.bump.outputs.new_version || steps.check_release.outputs.next_tag }}
               CHANGELOG_BODY: ${{ steps.changelog.outputs.changelog }}
            run: |
               DATE=$(date +'%Y-%m-%d')
@@ -140,11 +154,11 @@ jobs:
            if: steps.check_release.outputs.release_exists == 'false'
            uses: peter-evans/create-pull-request@v6
            with:
-              token: ${{ secrets.github_token }}
-              commit-message: 'chore: release ${{ steps.bump.outputs.new_version }}'
-              title: 'Release ${{ steps.bump.outputs.new_version }}'
+              token: ${{ secrets.gh_token }}
+              commit-message: 'chore: release ${{ steps.bump.outputs.new_version || steps.check_release.outputs.next_tag }}'
+              title: 'Release ${{ steps.bump.outputs.new_version || steps.check_release.outputs.next_tag }}'
               body: |
-                 ## Release ${{ steps.bump.outputs.new_version }}
+                 ## Release ${{ steps.bump.outputs.new_version || steps.check_release.outputs.next_tag }}
 
                  ${{ steps.version_type.outputs.trigger_type == 'monthly' && 'This is an automated monthly release PR.' || format('This is a manual release PR with a **{0}** version bump.', steps.version_type.outputs.bump_type) }}
 
@@ -155,7 +169,7 @@ jobs:
                  - Review the changelog and version bump
                  - Merge this PR to trigger the release process
                  - A new GitHub release will be created automatically
-              branch: release/${{ steps.bump.outputs.new_version }}
+              branch: release/${{ steps.bump.outputs.new_version || steps.check_release.outputs.next_tag }}
               delete-branch: true
               labels: |
                  release
