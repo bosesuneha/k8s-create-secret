@@ -53,4 +53,4 @@ jobs:
          version_bump: ${{ github.event_name == 'schedule' && 'patch' || github.event.inputs.version_bump }}
          trigger_type: ${{ github.event_name == 'schedule' && 'monthly' || 'manual' }}
       secrets:
-         github_token: ${{ secrets.GITHUB_TOKEN }}
+         gh_token: ${{ secrets.GITHUB_TOKEN }}

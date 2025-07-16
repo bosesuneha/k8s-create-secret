@@ -14,7 +14,7 @@ on:
             default: 'manual'
             type: string
       secrets:
-         github_token:
+         gh_token:
             description: 'GitHub token with write permissions'
             required: true
 
