@@ -1,0 +1,167 @@
+name: Create Release PR
+
+on:
+   workflow_call:
+      inputs:
+         version_bump:
+            description: 'Version bump type (patch/minor/major)'
+            required: false
+            default: 'patch'
+            type: string
+         trigger_type:
+            description: 'How this workflow was triggered (monthly/manual)'
+            required: false
+            default: 'manual'
+            type: string
+      secrets:
+         github_token:
+            description: 'GitHub token with write permissions'
+            required: true
+
+concurrency:
+   group: auto-release
+   cancel-in-progress: false
+
+jobs:
+   create-release-pr:
+      name: Create Release PR
+      runs-on: ubuntu-latest
+      permissions:
+         contents: write
+         pull-requests: write
+
+      steps:
+         - name: Checkout code
+           uses: actions/checkout@v4
+           with:
+              fetch-depth: 0
+
+         - name: Set up Node.js
+           uses: actions/setup-node@v4
+           with:
+              node-version: '20'
+              cache: 'npm'
+
+         - name: Install dependencies
+           run: npm ci
+
+         - name: Get latest tag
+           id: get_tag
+           run: |
+              latest=$(git tag -l 'v[0-9]*.[0-9]*.[0-9]*' | sort -V | tail -n1)
+              LATEST_TAG=${latest:-v0.0.0}
+              echo "latest_tag=$LATEST_TAG" >> $GITHUB_OUTPUT
+              echo "Found latest tag: $LATEST_TAG"
+
+         - name: Check if release already exists
+           id: check_release
+           run: |
+              current_version="v$(node -p "require('./package.json').version")"
+              if git tag -l | grep -q "^$current_version$"; then
+                echo "release_exists=true" >> $GITHUB_OUTPUT
+                echo "::warning::Release $current_version already exists"
+              else
+                echo "release_exists=false" >> $GITHUB_OUTPUT
+              fi
+
+         - name: Determine version bump type
+           id: version_type
+           run: |
+              BUMP_TYPE="${{ inputs.version_bump || 'patch' }}"
+              TRIGGER_TYPE="${{ inputs.trigger_type || 'manual' }}"
+
+              # Validate bump type
+              if [[ "$BUMP_TYPE" =~ ^(patch|minor|major)$ ]]; then
+                echo "bump_type=$BUMP_TYPE" >> $GITHUB_OUTPUT
+              else
+                echo "bump_type=patch" >> $GITHUB_OUTPUT
+              fi
+
+              echo "trigger_type=$TRIGGER_TYPE" >> $GITHUB_OUTPUT
+
+         - name: Bump version
+           id: bump
+           if: steps.check_release.outputs.release_exists == 'false'
+           run: |
+              BUMP_TYPE="${{ steps.version_type.outputs.bump_type }}"
+              echo "Bumping version with type: $BUMP_TYPE"
+
+              if [ "$BUMP_TYPE" = "patch" ] || [ "$BUMP_TYPE" = "minor" ] || [ "$BUMP_TYPE" = "major" ]; then
+                # Use npm version for standard bumps
+                npm version "$BUMP_TYPE" --no-git-tag-version
+              else
+                # Fallback to patch for any other case
+                npm version patch --no-git-tag-version
+              fi
+
+              new_version="v$(node -p "require('./package.json').version")"
+              echo "new_version=$new_version" >> $GITHUB_OUTPUT
+              echo "New version: $new_version"
+
+         - name: Build changelog from merged PRs
+           id: changelog
+           if: steps.check_release.outputs.release_exists == 'false'
+           uses: mikepenz/release-changelog-builder-action@v4
+           with:
+              configuration: .github/changelog-config.json
+              fromTag: ${{ steps.get_tag.outputs.latest_tag }}
+              toTag: HEAD
+           env:
+              GITHUB_TOKEN: ${{ secrets.github_token }}
+
+         - name: Update CHANGELOG.md
+           if: steps.check_release.outputs.release_exists == 'false'
+           env:
+              NEW_VERSION: ${{ steps.bump.outputs.new_version }}
+              CHANGELOG_BODY: ${{ steps.changelog.outputs.changelog }}
+           run: |
+              DATE=$(date +'%Y-%m-%d')
+              ENTRY="## [${NEW_VERSION#v}] - $DATE\n\n${CHANGELOG_BODY%$'\n'}"
+
+              if [[ -f CHANGELOG.md ]]; then
+                awk -v e="$ENTRY" 'BEGIN {printed=0} /^# Changelog/ {
+                  print; print ""; print e; printed=1; next
+                } { print } END { if (!printed) print e }' CHANGELOG.md > tmp && mv tmp CHANGELOG.md
+                echo "Updated CHANGELOG.md"
+              else
+                echo "# Changelog\n\n$ENTRY" > CHANGELOG.md
+                echo "Created CHANGELOG.md"
+              fi
+
+         - name: Format changelog with Prettier
+           if: steps.check_release.outputs.release_exists == 'false'
+           run: |
+              if [[ -f CHANGELOG.md ]]; then
+                npx prettier --write CHANGELOG.md || echo "Prettier formatting failed, continuing..."
+              fi
+
+         - name: Create Pull Request
+           id: create_pr
+           if: steps.check_release.outputs.release_exists == 'false'
+           uses: peter-evans/create-pull-request@v6
+           with:
+              token: ${{ secrets.github_token }}
+              commit-message: 'chore: release ${{ steps.bump.outputs.new_version }}'
+              title: 'Release ${{ steps.bump.outputs.new_version }}'
+              body: |
+                 ## Release ${{ steps.bump.outputs.new_version }}
+
+                 ${{ steps.version_type.outputs.trigger_type == 'monthly' && 'This is an automated monthly release PR.' || format('This is a manual release PR with a **{0}** version bump.', steps.version_type.outputs.bump_type) }}
+
+                 ### Changes
+                 ${{ steps.changelog.outputs.changelog }}
+
+                 ### Next Steps
+                 - Review the changelog and version bump
+                 - Merge this PR to trigger the release process
+                 - A new GitHub release will be created automatically
+              branch: release/${{ steps.bump.outputs.new_version }}
+              delete-branch: true
+              labels: |
+                 release
+                 ${{ steps.version_type.outputs.trigger_type }}
+
+         - name: Skip release (already exists)
+           if: steps.check_release.outputs.release_exists == 'true'
+           run: |
+              echo "::notice::Release already exists, skipping PR creation"
