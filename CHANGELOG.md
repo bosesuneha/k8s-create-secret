@@ -1,5 +1,11 @@
 # Changelog
 
+## [5.0.9] - 2025-07-16
+
+### Changed
+
+- #16 Test monthly release workflow
+
 ## [5.0.8] - 2025-07-01
 
 ### Changed
