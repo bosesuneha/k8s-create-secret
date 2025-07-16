@@ -5,6 +5,7 @@
 ### Changed
 
 - No changes since last release
+
 ## [5.0.7] - 2025-06-20
 
 ### Changed
